@@ -1,0 +1,6 @@
+---
+- name: sample playbook
+  hosts: hetzner
+  gather_facts: true
+  roles:
+    - nginx

@@ -1,0 +1,8 @@
+---
+- name: check gather facts
+  debug:
+    var: ansible_facts.lsb
+
+- name: check web server vars
+  debug:
+   msg: "may name is {{my_name}}"
