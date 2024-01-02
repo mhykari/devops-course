@@ -1,0 +1,48 @@
+---
+
+- name: Install all packages
+  become: true
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+    autoclean: yes
+    autoremove: yes
+  loop:
+    # OS Utility Packages
+    - zip
+    - bzip2
+    - curl
+    - rsync
+    - htop
+    - zsh
+    - vim
+    - python3
+    - python-pip
+    - screen
+    - etckeeper
+    - lsof
+    - bash-completion
+    - less
+    - iotop
+    - dstat
+    - sysstat
+    - git
+    # Hardening Utiluty Packages
+    - clamav
+    - clamav-daemon
+    - fail2ban
+    - libpam-modules
+    - apt-listbugs
+    - apt-listchanges
+    # Network Utility Packages
+    - net-tools
+    - nmap
+    - dnsutils
+    - resolvconf
+    - tcpdump
+    - mtr
+    - ethtool
+    - traceroute
+    - scapy
+  notify: apt update

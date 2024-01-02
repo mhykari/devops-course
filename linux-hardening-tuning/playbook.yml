@@ -1,0 +1,21 @@
+---
+- name: linux os hardening
+  hosts: hetzner
+  gather_facts: false
+  roles:
+    - os_hardening
+  tags: hardening
+
+- name: linux os tuning
+  hosts: hetzner
+  gather_facts: false
+  roles:
+    - tuning
+  tags: tuning
+
+- name: linux os hardening
+  hosts: hetzner 
+  gather_facts: false
+  roles:
+    - ssh_hardening
+  tags: ssh
