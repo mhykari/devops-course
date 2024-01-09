@@ -1,0 +1,33 @@
+
+inventory
+    group_vars
+        all
+            harchi.yml
+        web-servers
+            harchi.yml
+    host_vars
+    hosts.yml
+playbooks
+    sample.yml
+roles
+    web
+        defaults
+            main.yml
+        tasks
+            main.yml
+        templates
+        files
+        handlers
+            main.yml
+    nginx
+        defaults
+        tasks
+        templates
+        files
+        handlers
+    sample
+        defaults
+        tasks
+        templates
+        files
+        handlers

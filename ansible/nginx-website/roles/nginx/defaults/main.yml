@@ -1,0 +1,6 @@
+---
+cert:
+  domain: localhost
+#  email: ahmad@mecan.ir
+#
+#os_version: "{{ ansible_facts.lsb.codename }}"

@@ -1,0 +1,13 @@
+---
+- name: Install all packages
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+    autoclean: yes
+    autoremove: yes
+  loop:
+    - nginx
+#    - certbot
+    - unzip
+  notify: RestartNginx

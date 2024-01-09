@@ -1,0 +1,30 @@
+---
+- name: stop nginx service
+  systemd:
+    name: nginx
+    state: stopped
+
+#- name: create certificate
+#  shell: certbot certonly --standalone --non-interactive --agree-tos --preferred-challenges http --email {{ cert.email }} -d {{ cert.domain }}
+
+- name: Remove delete nginx config
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Unarchive static file
+  ansible.builtin.unarchive:
+    src: Fashion.zip
+    dest: /var/www/html/
+
+- name: move nginx config file
+  ansible.builtin.template:
+    src: fashion.conf.j2
+    dest: /etc/nginx/conf.d/fashion.conf
+  notify: RestartNginx
+
+#- name: move htpasswd config file
+#  ansible.builtin.template:
+#    src: htpasswd.j2
+#    dest: /etc/nginx/conf.d/htpasswd
+#  notify: RestartNginx
