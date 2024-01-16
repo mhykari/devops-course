@@ -1,6 +1,6 @@
 ---
 
-- name: Install all packages
+- name: Install OS Utility Packages
   become: true
   apt:
     name: "{{ item }}"
@@ -9,7 +9,6 @@
     autoclean: yes
     autoremove: yes
   loop:
-    # OS Utility Packages
     - zip
     - bzip2
     - curl
@@ -28,14 +27,33 @@
     - dstat
     - sysstat
     - git
-    # Hardening Utiluty Packages
+
+- name: Install Hardening Utiluty Packages
+  become: true
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+    autoclean: yes
+    autoremove: yes
+  loop:
     - clamav
     - clamav-daemon
     - fail2ban
     - libpam-modules
     - apt-listbugs
     - apt-listchanges
-    # Network Utility Packages
+    - libpam-tmpdir
+
+- name: Install Network Utility Packages
+  become: true
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+    autoclean: yes
+    autoremove: yes
+  loop:
     - net-tools
     - nmap
     - dnsutils
