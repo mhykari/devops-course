@@ -8,10 +8,3 @@
 #  import_tasks: configuration.yml
 #  tags: configuration
 ##  when: ansible_facts.lsb.codename == "bookworm"
-- name : Dcoker Installation
-  import_tasks: install-docker.yml
-  tags: install-docker
-
-#- name : Docker Configuration
-#  import_tasks: config-docker.yml
-#  tags: config-docker
