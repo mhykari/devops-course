@@ -8,6 +8,6 @@
     autoremove: yes
   loop:
     - nginx
-#    - certbot
+    - certbot
     - unzip
   notify: RestartNginx

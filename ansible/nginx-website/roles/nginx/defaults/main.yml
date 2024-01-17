@@ -1,6 +1,6 @@
 ---
 cert:
-  domain: localhost
-#  email: ahmad@mecan.ir
-#
+  domain: web.mhykari.ir
+  email: mhykari@gmail.com
+
 #os_version: "{{ ansible_facts.lsb.codename }}"
