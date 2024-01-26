@@ -27,6 +27,8 @@
     - dstat
     - sysstat
     - git
+    - tree
+    - python3-pip
 
 - name: Install Hardening Utiluty Packages
   become: true
@@ -37,6 +39,7 @@
     autoclean: yes
     autoremove: yes
   loop:
+    - lynis
     - clamav
     - clamav-daemon
     - fail2ban

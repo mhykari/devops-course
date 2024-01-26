@@ -13,7 +13,7 @@
     - tuning
   tags: tuning
 
-- name: linux os hardening
+- name: linux ssh hardening
   hosts: all 
   gather_facts: false
   roles:
