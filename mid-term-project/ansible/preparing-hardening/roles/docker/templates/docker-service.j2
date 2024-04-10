@@ -1,0 +1,23 @@
+{
+{% if docker.log_max_size is defined %}
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "{{ docker.log_max_size }}",
+    "max-file": "{{ docker.log_max_file }}"
+  }
+  {% endif %}
+  {% if docker.registry_mirror is defined %}
+  ,
+  "registry-mirrors": ["{{ docker.registry_mirror }}"]
+  {% endif %}
+  {% if docker.http_proxy is defined %}
+  ,
+  "proxies": {
+    "default": {
+      "httpProxy": "{{ docker.http_proxy }}",
+      "httpsProxy": "{{ docker.https_proxy }}",
+      "noProxy": "{{ docker.no_proxy }}"
+    }
+  }
+  {% endif %}
+}

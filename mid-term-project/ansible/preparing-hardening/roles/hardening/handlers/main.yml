@@ -1,0 +1,44 @@
+# handlers file for hardening
+---
+- name: Reload SSH
+  service:
+    name: sshd
+    state: reloaded
+
+- name: Update-initramfs # noqa no-changed-when
+  ansible.builtin.command: update-initramfs -u
+
+- name: restart ntpd
+  service:
+    name: ntpd # Replace with the service name if different
+    state: restarted
+
+- name: Restart ntp
+  systemd:
+    name: ntp
+    state: restarted
+
+- name: Restart iptables
+  systemd:
+    name: iptables
+    state: restarted
+
+- name: Restart fail2ban
+  systemd:
+    name: fail2ban
+    state: restarted
+
+- name: restart auditd via systemd
+  become: true
+  ansible.builtin.systemd:
+    name: auditd
+    state: restarted
+
+- name: generate auditd
+  become: true
+  ansible.builtin.command: augenrules
+
+- name: reload systemd
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: "yes"

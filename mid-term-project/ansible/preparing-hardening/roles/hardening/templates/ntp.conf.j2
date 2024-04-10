@@ -1,0 +1,17 @@
+# /etc/ntp.conf
+# Use servers appropriate for your location or network
+
+# Server pool directive - use one or more server lines to specify NTP servers
+server 0.pool.ntp.org
+server 1.pool.ntp.org
+server 2.pool.ntp.org
+server 3.pool.ntp.org
+
+# Restrict NTP access to localhost
+restrict default kod nomodify notrap nopeer noquery
+restrict -6 default kod nomodify notrap nopeer noquery
+restrict 127.0.0.1
+restrict -6 ::1
+
+# Drift file etc.
+driftfile /var/lib/ntp/drift

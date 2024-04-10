@@ -1,0 +1,17 @@
+---
+- name: Install Lynis
+  ansible.builtin.package:
+    name: lynis
+
+- name: run lynis scripts
+  command: lynis --auditor "ansible playbook" --quick --no-log --no-colors
+  register: lynis_output
+  tags: lynis
+
+- name: Extract Hardening index
+  set_fact:
+    hardening_index: "{{ lynis_output.stdout_lines | regex_search('Hardening index : (\\d+)', '\\1') }}"
+
+- name: Display Hardening index
+  debug:
+    msg: "Hardening index: {{ hardening_index }}"

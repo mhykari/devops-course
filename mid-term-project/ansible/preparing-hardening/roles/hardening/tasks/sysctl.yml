@@ -1,0 +1,45 @@
+---
+- name: Protect sysctl.conf
+  ansible.builtin.file:
+    path: /etc/sysctl.conf
+    owner: root
+    group: root
+    mode: "0440"
+    state: touch
+    modification_time: preserve
+    access_time: preserve
+
+- name: Install initramfs-tools
+  ansible.builtin.apt:
+    name: initramfs-tools
+    state: present
+    update_cache: true
+  when:
+    - os_security_kernel_enable_module_loading
+
+- name: Rebuild initramfs with starting pack of modules, if module loading at runtime is disabled
+  ansible.builtin.template:
+    src: initramfs-tools/modules.j2
+    dest: /etc/initramfs-tools/modules
+    owner: root
+    group: root
+    mode: "0440"
+  notify:
+    - Update-initramfs
+  when:
+    - os_security_kernel_enable_module_loading
+  register: initramfs
+
+- name: Change sysctls
+  when: ansible_virtualization_type not in ['docker', 'lxc', 'openvz']
+  block:
+    - name: Change various sysctl-settings, look at the sysctl-vars file for documentation
+      ansible.posix.sysctl:
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+        sysctl_set: true
+        state: present
+        reload: true
+        ignoreerrors: true
+      with_dict: "{{ sysctl_config }}"
+      when: item.key not in sysctl_unsupported_entries | default()

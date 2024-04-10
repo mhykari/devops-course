@@ -1,0 +1,63 @@
+version: '3.9'
+
+services:
+  mysql:
+    restart: $RESTART_POLICY
+    image: mysql:8.0
+    container_name: semaphore-mysql
+    hostname: mysql
+    volumes:
+      - semaphore-mysql:/var/lib/mysql
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: ${MYSQL_RANDOM_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    networks:
+      - web_net
+
+  semaphore:
+    restart: $RESTART_POLICY
+    container_name: semaphore
+    image: semaphoreui/semaphore:latest
+    volumes:
+      - semaphore-proj:/tmp/semaphore
+    environment:
+      SEMAPHORE_DB_USER: ${SEMAPHORE_DB_USER}
+      SEMAPHORE_DB_PASS: ${SEMAPHORE_DB_PASS}
+      SEMAPHORE_DB_HOST: ${SEMAPHORE_DB_HOST}
+      SEMAPHORE_DB_PORT: ${SEMAPHORE_DB_PORT}
+      SEMAPHORE_DB_DIALECT: ${SEMAPHORE_DB_DIALECT}
+      SEMAPHORE_DB: ${SEMAPHORE_DB}
+      SEMAPHORE_PLAYBOOK_PATH: ${SEMAPHORE_PLAYBOOK_PATH}
+      SEMAPHORE_ADMIN_PASSWORD: ${SEMAPHORE_ADMIN_PASSWORD}
+      SEMAPHORE_ADMIN_NAME: ${SEMAPHORE_ADMIN_NAME}
+      SEMAPHORE_ADMIN_EMAIL: ${SEMAPHORE_ADMIN_EMAIL}
+      SEMAPHORE_ADMIN: ${SEMAPHORE_ADMIN}
+      SEMAPHORE_ACCESS_KEY_ENCRYPTION: ${SEMAPHORE_ACCESS_KEY_ENCRYPTION}
+    depends_on:
+      - mysql
+    networks:
+      - web_net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web_net"
+      - "traefik.http.routers.smph.entrypoints=http"
+      - "traefik.http.routers.smph.rule=Host(`${SMPH_SUB}.${DOMAIN_ADDRESS}`)"
+      - "traefik.http.routers.smph.middlewares=https-redirect"
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.smph-secure.entrypoints=https"
+      - "traefik.http.routers.smph-secure.rule=Host(`${SMPH_SUB}.${DOMAIN_ADDRESS}`)"
+      - "traefik.http.routers.smph-secure.tls=true"
+      - "traefik.http.routers.smph-secure.tls.options=default"
+      - "traefik.http.routers.smph-secure.tls.certresolver=mycert"
+      - "traefik.http.routers.smph-secure.service=smph"
+      - "traefik.http.services.smph.loadbalancer.server.port=3000"
+
+volumes:
+  semaphore-mysql:
+  semaphore-proj:
+  
+networks:
+  web_net:
+    external: true

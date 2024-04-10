@@ -1,0 +1,88 @@
+---
+- name: install package
+  import_tasks: packages.yml
+  tags: install_packages
+
+- name: change limit.conf
+  import_tasks: limits.yml
+  tags: tuning
+
+- name: config ssh
+  import_tasks: ssh.yml
+  tags: config_ssh
+
+- name: Import tasks to harden user accounts
+  import_tasks: user_accounts.yml
+  tags: user_accounts
+
+- name: Import tasks to configure login_defs
+  ansible.builtin.import_tasks: login_defs.yml
+  tags: login_defs
+
+- name: Import tasks to configure sysctl
+  ansible.builtin.import_tasks: sysctl.yml
+  tags: sysctl
+
+- name: config ntp
+  import_tasks: ntp.yml
+  tags: config_ntp
+
+- name: Copy ssh banner file.
+  copy:
+    src: ssh_banner
+    dest: '{{item}}'
+  loop:
+    - /etc/issue.net
+    - /etc/issue
+
+- name: Make timout configuration file.
+  template:
+    src: timout.j2
+    dest: /etc/profile.d/timout-settings.sh
+
+- name: Set timezone to Asia/Tehran
+  community.general.timezone:
+    name: Asia/Tehran
+  notify: Restart ntp
+
+- name: Make iptables configuration file.
+  template:
+    src: iptables.j2
+    dest: /etc/iptables/rules.v4
+
+- name: restore iptables state from a file
+  community.general.iptables_state:
+    state: restored
+    path: /etc/iptables/rules.v4
+    noflush: true
+  notify: Restart iptables
+
+- name: Make fail2ban configuration file.
+  template:
+    src: fial2ban.j2
+    dest: /etc/fail2ban/jail.local
+  notify: Restart fail2ban
+
+- name: host file configure
+  import_tasks: hosts.yml
+  tags: hardening
+
+- name: audit log configure
+  import_tasks: auditd.yml
+  tags: hardening
+
+- name: fstab config
+  import_tasks: fstab.yml
+  tags: hardening
+
+- name: change resolved.conf
+  import_tasks: resolvedconf.yml
+  tags: hardening
+
+- name: change journal.conf
+  import_tasks: journalconf.yml
+  tags: hardening
+
+- name: download and config lynis scripts
+  import_tasks: lynis.yml
+  tags: lynis_audit

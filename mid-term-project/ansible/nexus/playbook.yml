@@ -1,0 +1,7 @@
+---
+- name: repo-server
+  hosts: all
+  gather_facts: false
+  roles:
+    - repo-server
+  tags: nexus

@@ -1,0 +1,56 @@
+---
+- name: Update and upgrade apt packages
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400
+
+- name: Install basic tools
+  apt:
+    name: "{{ packages }}"
+    state: present
+    force_apt_get: yes
+    update_cache: yes
+
+- name: Set hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Fix /etc/hosts
+  template:
+    src: "hosts.j2"
+    dest: "/etc/hosts"
+
+- name: Remove deprecated or insecure packages
+  apt:
+    name: "{{ os_security_packages_list }}"
+    state: absent
+    purge: true
+  when: os_security_packages_clean | bool
+
+- name: Remove undesirable packages
+  package:
+    name: "{{ unnecessary_software }}"
+    state: absent
+
+- name: Check if services exist and remove if present
+  block:
+    - name: Check if service exists
+      systemd:
+        name: "{{ item }}"
+        state: absent
+      register: service_status
+      ignore_errors: true
+      loop: "{{ unnecessary_services }}"
+      when: service_status.results | default([]) | length > 0
+
+    - debug:
+        var: service_status
+
+    - name: Remove service if it exists
+      systemd:
+        name: "{{ item }}"
+        state: stopped
+        enabled: no
+      when: item is defined and service_status is defined and service_status[item] is defined and service_status[item].status == "absent"
+      loop: "{{ unnecessary_services }}"

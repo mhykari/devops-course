@@ -1,0 +1,12 @@
+---
+- name: Make docker configuration file.
+  template:
+    src: docker-service.j2
+    dest: /etc/docker/daemon.json
+  notify: restart docker
+
+- name: Restart service docker and daemon-reload
+  ansible.builtin.systemd:
+    state: restarted
+    daemon_reload: yes
+    name: docker
