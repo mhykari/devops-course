@@ -1,0 +1,143 @@
+version: "3.9"
+
+services:
+
+  redis:
+    image: redis:alpine
+    networks:
+      - web_net
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - app_net
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+  vote:
+    image: dockersamples/examplevotingapp_vote
+    networks:
+      - web_net
+    deploy:
+      replicas: 2
+      labels:
+        - "traefik.enable=true"
+        #if deploy service with the name "vote"
+        - "traefik.docker.network=vote_web_net"
+        - "traefik.http.routers.vote.entrypoints=http"
+        - "traefik.http.routers.vote.rule=Host(`vote.mhykari.ir`)"
+        - "traefik.http.routers.vote.middlewares=https-redirect"
+        - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+        - "traefik.http.routers.vote-secure.entrypoints=https"
+        - "traefik.http.routers.vote-secure.rule=Host(`vote.mhykari.ir`)"
+        - "traefik.http.routers.vote-secure.tls=true"
+        - "traefik.http.routers.vote-secure.tls.certresolver=mycert"
+        - "traefik.http.services.vote.loadbalancer.server.port=80"
+
+  result:
+    image: dockersamples/examplevotingapp_result
+    networks:
+      - web_net
+      - app_net
+    depends_on:
+      - db
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=vote_web_net"
+        - "traefik.http.routers.resault.entrypoints=http"
+        - "traefik.http.routers.resault.rule=Host(`resault.mhykari.ir`)"
+        - "traefik.http.routers.resault.middlewares=https-redirect"
+        - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+        - "traefik.http.routers.resault-secure.entrypoints=https"
+        - "traefik.http.routers.resault-secure.rule=Host(`resault.mhykari.ir`)"
+        - "traefik.http.routers.resault-secure.tls=true"
+        - "traefik.http.routers.resault-secure.tls.certresolver=mycert"
+        - "traefik.http.services.resault.loadbalancer.server.port=80"
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  worker:
+    image: dockersamples/examplevotingapp_worker
+    networks:
+      - web_net
+      - app_net
+    deploy:
+      mode: replicated
+      replicas: 2
+
+  traefik:
+    image: traefik:v2.10
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=web_net"
+        - "traefik.http.routers.traefik-secure.service=api@internal"
+        - "traefik.http.routers.traefik.entrypoints=http"
+        - "traefik.http.routers.traefik.rule=Host(`voting.mhykari.ir`)"
+        - "traefik.http.middlewares.web-auth.basicauth.users=mhykari:{SHA}fCIvspJ9goryL1khNOiTJIBjfA0="
+        - "traefik.http.routers.traefik.middlewares=https-redirect"
+        - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+        - "traefik.http.routers.traefik-secure.entrypoints=https"
+        - "traefik.http.routers.traefik-secure.rule=Host(`voting.mhykari.ir`)"
+        - "traefik.http.routers.traefik-secure.tls=true"
+        - "traefik.http.routers.traefik-secure.tls.options=default"
+        - "traefik.http.routers.traefik-secure.middlewares=web-auth"
+        - "traefik.http.routers.traefik-secure.tls.certresolver=mycert"
+        - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+    command:
+      - "--log.level=ERROR"
+      - "--log.filepath=/log-file.log"
+      - "--log.format=json"
+      - "--api=true"
+      - "--ping=true"
+      - "--providers.docker.swarmMode=true"
+      - "--accesslog=true"
+      - "--accesslog.fields.names.StartUTC=drop"
+      - "--accesslog.bufferingsize=250"
+      - "--api.insecure=true"
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=web_net"
+      - "--providers.docker"
+      - "--entrypoints.http.address=:80"
+      - "--entrypoints.https.address=:443"
+      - "--metrics.prometheus=true"
+      - "--entryPoints.metrics.address=:8082"
+      - "--metrics.prometheus.entryPoint=metrics"
+    ports:
+      # listen on host ports without ingress network
+      - target: 80
+        published: 80
+        mode: host
+      - target: 443
+        published: 443
+        mode: host
+      - target: 8080
+        published: 8080
+        mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-acme:/acme
+    networks:
+      - web_net
+
+networks:
+  web_net:
+  app_net:
+
+volumes:
+  db-data:
+   name: db-data
+  traefik-acme:
+    name: traefik-acme
