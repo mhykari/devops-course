@@ -10,8 +10,8 @@ services:
   db:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - db-data:/var/lib/postgresql/data
     networks:
@@ -31,11 +31,11 @@ services:
         #if deploy service with the name "vote"
         - "traefik.docker.network=vote_web_net"
         - "traefik.http.routers.vote.entrypoints=http"
-        - "traefik.http.routers.vote.rule=Host(`vote.mhykari.ir`)"
+        - "traefik.http.routers.vote.rule=Host('${VOTE_SUB}.${DOMAIN_ADDRESS}`)"
         - "traefik.http.routers.vote.middlewares=https-redirect"
         - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
         - "traefik.http.routers.vote-secure.entrypoints=https"
-        - "traefik.http.routers.vote-secure.rule=Host(`vote.mhykari.ir`)"
+        - "traefik.http.routers.vote-secure.rule=Host('${VOTE_SUB}.${DOMAIN_ADDRESS}`)"
         - "traefik.http.routers.vote-secure.tls=true"
         - "traefik.http.routers.vote-secure.tls.certresolver=mycert"
         - "traefik.http.services.vote.loadbalancer.server.port=80"
@@ -52,15 +52,15 @@ services:
         - "traefik.enable=true"
         - "traefik.docker.network=vote_web_net"
         - "traefik.http.routers.resault.entrypoints=http"
-        - "traefik.http.routers.resault.rule=Host(`resault.mhykari.ir`)"
+        - "traefik.http.routers.resault.rule=Host('${RESULT_SUB}.${DOMAIN_ADDRESS}`)"
         - "traefik.http.routers.resault.middlewares=https-redirect"
         - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
         - "traefik.http.routers.resault-secure.entrypoints=https"
-        - "traefik.http.routers.resault-secure.rule=Host(`resault.mhykari.ir`)"
+        - "traefik.http.routers.resault-secure.rule=Host('${RESULT_SUB}.${DOMAIN_ADDRESS}`)"
         - "traefik.http.routers.resault-secure.tls=true"
         - "traefik.http.routers.resault-secure.tls.certresolver=mycert"
         - "traefik.http.services.resault.loadbalancer.server.port=80"
-      replicas: 1
+      replicas: 2
       update_config:
         parallelism: 2
         delay: 10s
@@ -84,12 +84,12 @@ services:
         - "traefik.docker.network=web_net"
         - "traefik.http.routers.traefik-secure.service=api@internal"
         - "traefik.http.routers.traefik.entrypoints=http"
-        - "traefik.http.routers.traefik.rule=Host(`voting.mhykari.ir`)"
+        - "traefik.http.routers.traefik.rule=Host(`${TRAEFIK_SUB}.${DOMAIN_ADDRESS}`)"
         - "traefik.http.middlewares.web-auth.basicauth.users=mhykari:{SHA}fCIvspJ9goryL1khNOiTJIBjfA0="
         - "traefik.http.routers.traefik.middlewares=https-redirect"
         - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
         - "traefik.http.routers.traefik-secure.entrypoints=https"
-        - "traefik.http.routers.traefik-secure.rule=Host(`voting.mhykari.ir`)"
+        - "traefik.http.routers.traefik-secure.rule=Host(`${TRAEFIK_SUB}.${DOMAIN_ADDRESS}`)"
         - "traefik.http.routers.traefik-secure.tls=true"
         - "traefik.http.routers.traefik-secure.tls.options=default"
         - "traefik.http.routers.traefik-secure.middlewares=web-auth"
@@ -123,9 +123,7 @@ services:
       - target: 443
         published: 443
         mode: host
-      - target: 8080
-        published: 8080
-        mode: host
+
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - traefik-acme:/acme
@@ -138,6 +136,6 @@ networks:
 
 volumes:
   db-data:
-   name: db-data
+    name: db-data
   traefik-acme:
     name: traefik-acme
