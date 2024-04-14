@@ -1,0 +1,141 @@
+#treafik variables
+traefik:
+ repo: traefik
+ version: v2.10.4
+ container_name: traefik
+ volume: traefik
+ acme_volume: traefik-acme
+ dockerv: /var/run/docker.sock
+ path: /opt/services/traefik
+ configpath: /opt/services/traefik/traefik
+ certpath: /opt/services/traefik/traefik/certs
+ network: web_net
+#treafik env
+t_env:
+ DOMAIN_ADDR: sh.shahrrii.ir
+ SUB: web
+ ACME_EMAIL: cert@shahrrii.ir 
+ WEB_AUTH_USER: Shahrrii
+ WEB_AUTH_PASS: "{SHA}RyyBVKw1Qps/b/s6upvUKhGqfRA="
+
+#trafik cert location
+cert:
+ certFile: /traefik/certs/cert.pem
+ keyFile: /traefik/certs/key.pem
+###################################################################
+prometheus_stack:  
+  path: /opt/services/prometheus-stack
+  DOMAIN_ADDRESS: sh.shahrrii.ir
+  PROSUB: metrics
+  GRASUB: grafana
+  ALESUB: alerts
+  PGWSUB: pushgw
+  GRAFANA_USERNAME: Shahrrii
+  GRAFANA_PASSWORD: hNA6iQxwNcgZse2vZm4iLHhothC77J
+  GRAFANA_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource,grafana-piechart-panel
+  HOSTNAME: observability
+  RESTART_POLICY: on-failure
+
+#prometheus variables
+prometheus:
+ repo: prom/prometheus
+ version: v2.51.1
+ volume_data: prometheus_data
+ volume: ./prometheus
+ container_name: prometheus
+ configfile: /etc/prometheus/prometheus.yml
+ tsdbpath: /prometheus
+ tsdb_retention_time: 30d
+ tsdb_retention_size: 50GB
+ loadbalancer_server_port: 9090
+ network: app_net
+
+#grafana variables
+grafana:
+ repo: grafana/grafana
+ version: 10.1.9
+ volume_data: grafana_data
+ volume: ./grafana/
+ container_name: grafana
+ GF_PATHS_PROVISIONING : /etc/grafana/provisioning
+ GF_PATHS_DATA: /var/lib/grafana
+ loadbalancer_server_port: 3000
+
+#alertmanager variables
+alertmanager:
+ repo: prom/alertmanager
+ version: v0.26.0
+ volume_data: alertmanager_data
+ volume: ./alertmanager
+ container_name: alertmanager
+ configfile: /etc/alertmanager/alertmanager.yml
+ storagepath: /alertmanager
+ loadbalancer_server_port: 9093
+
+#pushgateway variables
+pushgtw:
+ repo: prom/pushgateway
+ version: v1.6.2
+ volume_data: pushgateway_data
+ volume: ./alertmanager
+ container_name: pushgateway
+ persistence_file: /tmp/pushgateway.store
+ persistence_interval: 1m
+ configfile: /etc/alertmanager/alertmanager.yml
+ storagepath: /alertmanager
+ loadbalancer_server_port: 9091
+
+#cadvisor variables
+cadvisor:
+ repo: docker.io/ahmadrafiee/cadvisor
+ docker_volume: /var/lib/docker/
+ container_name: cadvisor
+
+#blackbox-exporter variables
+blackbox:
+ repo: prom/blackbox-exporter
+ version: v0.24.0
+ container_name: blackbox-exporter
+ volume: ./blackbox
+ configfile: /etc/blackboxexporter/blackbox-exporter.yml
+
+#node-exporter variables
+nodexp:
+ repo: prom/node-exporter
+ version: v1.6.1
+ container_name: node-exporter
+ volume: ./blackbox
+ pathprocfs: /host/proc
+
+################################################
+#loki-stack varibale
+loki_stack:
+ network: app_net
+ path: /opt/services/loki-stack
+
+#loki variable
+loki:
+ repo: grafana/loki
+ version: k171-b5eaae1
+ volume_data: loki_data
+ volume: ./loki
+ container_name: loki
+ loadbalancer_server_port: 3100
+ configfile: /etc/loki/loki.yml
+ user: root 
+
+#promtail variable
+promtail:
+ repo: grafana/promtail
+ version: k171-b5eaae1
+ volume: ./promtail
+ container_name: promtail
+ configfile: /etc/promtail/promtail.yml
+ dockerv: /var/run/docker.sock
+ dockercont: /var/lib/docker/containers
+
+#loki env variable
+loki_env:
+ DOMAIN_ADDRESS: sh.shahrrii.ir
+ LOGSUB: loki
+ RESTART_POLICY: on-failure

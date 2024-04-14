@@ -1,0 +1,59 @@
+version: '3.8'
+
+networks:
+  {{ traefik.network }}:
+    external: true
+
+volumes:
+  {{ traefik.acme_volume }}:
+    name: {{ traefik.acme_volume }}
+
+services:
+  traefik:
+    image: {{ traefik.repo }}:{{ traefik.version }}
+    restart: always
+    container_name: {{ traefik.container_name }}
+    command:
+      - "--log.level=ERROR"
+      - "--log.filepath=/log-file.log"
+      - "--log.format=json"
+      - "--api=true"
+      - "--ping=true"
+      - "--accesslog=true"
+      - "--accesslog.fields.names.StartUTC=drop"
+      - "--accesslog.bufferingsize=250"
+      - "--api.insecure=true"
+      - "--providers.docker.endpoint=unix://{{ traefik.dockerv }}"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network={{ traefik.network }}"
+      - "--entrypoints.http.address=:80"
+      - "--entrypoints.https.address=:443"
+      - "--metrics.prometheus=true"
+      - "--entryPoints.metrics.address=:8082"
+      - "--metrics.prometheus.entryPoint=metrics"
+      - "--certificatesresolvers.mycert.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.mycert.acme.storage=/acme/acme.json"
+      - "--certificatesresolvers.mycert.acme.tlschallenge=true"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - {{ traefik.dockerv }}:{{ traefik.dockerv }}:ro
+      - {{traefik.acme_volume }}:/acme
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network={{ traefik.network }}"
+      - "traefik.http.routers.traefik.entrypoints=http"
+      - "traefik.http.routers.traefik.rule=Host(`${SUB}.${DOMAIN_ADDR}`)"
+      - "traefik.http.middlewares.web-auth.basicauth.users=${WEB_AUTH_USER}:${WEB_AUTH_PASS}"
+      - "traefik.http.routers.traefik.middlewares=https-redirect"
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.traefik-secure.entrypoints=https"
+      - "traefik.http.routers.traefik-secure.rule=Host(`${SUB}.${DOMAIN_ADDR}`)"
+      - "traefik.http.routers.traefik-secure.tls=true"
+      - "traefik.http.routers.traefik-secure.tls.options=default"
+      - "traefik.http.routers.traefik-secure.middlewares=web-auth"
+      - "traefik.http.routers.traefik-secure.tls.certresolver=mycert"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+    networks:
+      - {{ traefik.network }}

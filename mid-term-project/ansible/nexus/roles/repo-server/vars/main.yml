@@ -1,31 +1,31 @@
 ---
 # project directory
-REPO_DIRE_NAME: /var/services
+REPO_DIRE_NAME: /opt/services
 
 # nexus3, gitlab, and traefik docker image address and version
 NEXUS_IMAGE: sonatype/nexus3
 NEXUS_VERSION: 3.38.0
 TRAEFIK_IMAGE: traefik
 TRAEFIK_VERSION: v2.6.1
+RESTART_POLICY: always
+TRAEFIK_SUB_DOMAIN: toolsweb
+WEB_AUTH_USER: mhykari
+WEB_AUTH_PASS: "{SHA}BJk2WBO5x8HK4j6zHjQiTBHppe0="
+TRAEFIK_ACME_EMAIL: mhykari@gmail.com
+
 
 # Domain and subdomain definition
-DOMAIN_NAME: mhykari.ir
+DOMAIN_NAME: wecant.ir
 TRAEFIK_SUB_DOMAIN: web
 NEXUS_SUB_DOMAIN: repo
 HUB_SUB_DOMAIN: hub
 REG_SUB_DOMAIN: reg
 
-# pass generate with this commands
-# htpasswd -nbs user pass
-WEB_AUTH_USER: mhykari
-WEB_AUTH_PASS: HvUK5raHIxffab+QpM3KSARSXYE=
-TRAEFIK_ACME_EMAIL: mhykari@gmail.com
-
 # Nexus configuration
 NEXUS_ADMIN_USERNAME: admin
-NEXUS_ADMIN_PASSWORD: admin
+NEXUS_ADMIN_PASSWORD: M@hdaSirn
 NEXUS_SERVICE_URL: "https://{{ NEXUS_SUB_DOMAIN }}.{{ DOMAIN_NAME }}"
 NEXUS_REPO_USERNAME: repo
-NEXUS_REPO_PASSWORD: repo
+NEXUS_REPO_PASSWORD: M@hdaSirn
 NEXUS_REPO_EMAIL: mhykari@gmail.com
 DOCKER_REPO_BLOBSTORE: docker

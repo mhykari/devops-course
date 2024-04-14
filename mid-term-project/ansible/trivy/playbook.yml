@@ -1,0 +1,6 @@
+---
+- name: Install and configure Trivy
+  hosts: your_hosts
+  become: true
+  roles:
+    - trivy_scan

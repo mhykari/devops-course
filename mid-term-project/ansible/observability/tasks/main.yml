@@ -1,0 +1,15 @@
+---
+- name: deploy traefik
+  become: true
+  import_tasks: traefik.yml
+  tags:  ob_traefik
+
+- name: deploy prometheus_stack stack
+  become: true
+  import_tasks: prometheus_stack.yml
+  tags: prometheus_stack
+
+- name: deploy loki_stack
+  become: true
+  import_tasks: loki_stack.yml
+  tags: loki_stack 

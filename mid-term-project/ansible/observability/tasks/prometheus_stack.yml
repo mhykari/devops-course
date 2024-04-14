@@ -1,0 +1,51 @@
+---
+- name: Create prometheus-stack directory 
+  ansible.builtin.file:
+    path: "{{ prometheus_stack.path }}"
+    state: directory
+
+- name: Copy prometheus-stack compose file
+  ansible.builtin.template:
+    src: prometheus-stack-compose.yml.j2
+    dest: "{{ prometheus_stack.path }}/compose.yml"
+  tags: Copy_prometheus-stack
+
+- name: Copy prometheus-stack env file
+  ansible.builtin.template:
+    src: prometheus-stack.env.j2
+    dest: "{{ prometheus_stack.path }}/.env"
+
+
+- name: Copy Prometheus, Grafana, Blackbox, and Alertmanager directories
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ prometheus_stack.path }}/{{ item.name }}"
+  loop:
+    - src: prometheus/  
+      name: prometheus
+    - src: grafana/   
+      name: grafana
+    - src: blackbox/
+      name: blackbox
+    - src: alertmanager/
+      name: alertmanager
+
+- name: pull Prometheus, Grafana, Blackbox,Node exporter and Alertmanager images
+  docker_image:
+    name: "{{ item }}"
+    source: pull
+  loop:
+    - "{{ prometheus.repo }}:{{ prometheus.version }}"
+    - "{{ grafana.repo }}:{{ grafana.version }}"
+    - "{{ alertmanager.repo }}:{{ alertmanager.version }}"
+    - "{{ pushgtw.repo }}:{{ pushgtw.version }}"
+    - "{{ cadvisor.repo }}"
+    - "{{ blackbox.repo }}:{{ blackbox.version }}"
+    - "{{ nodexp.repo }}:{{ nodexp.version }}"
+  tags: pull_prometheus_stack
+
+- name: Run prometheus_stack Docker Compose
+  docker_compose:
+    project_src: "{{ prometheus_stack.path }}"
+    state: present 
+  tags: run prometheus_stack  

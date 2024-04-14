@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Run Trivy scan on Docker images and containers
+trivy image --severity HIGH,CRITICAL -f json -o /opt/services/trivy-result/image_scan.json
+trivy container --severity HIGH,CRITICAL -f json -o /opt/services/trivy-result/container_scan.json

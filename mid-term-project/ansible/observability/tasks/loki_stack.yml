@@ -1,0 +1,41 @@
+---
+- name: Create loki-stack directory 
+  ansible.builtin.file:
+    path: "{{ loki_stack.path }}"
+    state: directory
+
+- name: Copy loki-stack compose file
+  ansible.builtin.template:
+    src: loki-compose.yml.j2
+    dest: "{{ loki_stack.path }}/compose.yml"
+  tags: Copy_loki-stack
+
+- name: Copy loki-stack env file
+  ansible.builtin.template:
+    src: loki.env.j2
+    dest: "{{ loki_stack.path }}/.env" 
+
+- name: Copy loki , promtail directories and their config
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ loki_stack.path }}/{{ item.name }}"
+  loop:
+    - src: loki/  
+      name: loki
+    - src: promtail/   
+      name: promtail
+
+- name: pull loki , promtail images
+  docker_image:
+    name: "{{ item }}"
+    source: pull
+  loop:
+    - "{{ loki.repo }}:{{ loki.version }}"
+    - "{{ promtail.repo }}:{{ promtail.version }}"
+  tags: pull_loki_stack 
+
+- name: Run loki_stack Docker Compose
+  docker_compose:
+    project_src: "{{ loki_stack.path }}"
+    state: present 
+  tags: run loki_stack

@@ -1,0 +1,179 @@
+version: '3.8'
+
+networks:
+  {{ prometheus.network }}:
+    external: true
+    name: {{ prometheus.network }}
+  {{ traefik.network }}:
+    external: true
+    name: {{ traefik.network }}
+
+volumes:
+  {{ grafana.volume_data }}:
+    name: {{ grafana.volume_data }}
+  {{ prometheus.volume_data }}:
+    name: {{ prometheus.volume_data }}
+  {{ alertmanager.volume_data }}:
+    name: {{ alertmanager.volume_data }}
+  {{ pushgtw.volume_data }}:
+    name: {{ pushgtw.volume_data }}
+
+services:
+  prometheus:
+    image: {{ prometheus.repo }}:{{ prometheus.version }}
+    restart: ${RESTART_POLICY}
+    container_name: {{ prometheus.container_name }}
+    volumes:
+      - {{ prometheus.volume_data }}:/prometheus
+      - {{ prometheus.volume }}:/etc/prometheus
+    command:
+      - --config.file={{ prometheus.configfile }}
+      - --storage.tsdb.path={{ prometheus.tsdbpath }}
+      - --storage.tsdb.retention.time={{ prometheus.tsdb_retention_time }}
+      - --storage.tsdb.retention.size={{ prometheus.tsdb_retention_size }}
+      - --web.enable-lifecycle
+    networks:
+      - {{ traefik.network }}
+      - {{ prometheus.network }}
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network={{ traefik.network }}
+      - traefik.http.routers.prometheus.entrypoints=http
+      - traefik.http.routers.prometheus.rule=Host(`${PROSUB}.${DOMAIN_ADDRESS}`)
+      - traefik.http.routers.prometheus.middlewares=https-redirect
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.prometheus-secure.entrypoints=https
+      - traefik.http.routers.prometheus-secure.rule=Host(`${PROSUB}.${DOMAIN_ADDRESS}`)
+      - traefik.http.routers.prometheus-secure.tls=true
+      - traefik.http.routers.prometheus-secure.tls.options=default
+      - traefik.http.routers.prometheus-secure.middlewares=web-auth
+      - traefik.http.routers.prometheus-secure.tls.certresolver=mycert
+      - traefik.http.services.prometheus.loadbalancer.server.port={{ prometheus.loadbalancer_server_port}}
+
+  grafana:
+    image: {{ grafana.repo }}:{{ grafana.version }}
+    restart: ${RESTART_POLICY}
+    container_name: {{ grafana.container_name }}
+    volumes:
+      - {{ grafana.volume_data }}:/var/lib/grafana
+      - {{ grafana.volume }}:/etc/grafana/provisioning/
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USERNAME}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_INSTALL_PLUGINS=${GRAFANA_INSTALL_PLUGINS}
+      - GF_PATHS_PROVISIONING={{ grafana.GF_PATHS_PROVISIONING }}
+      - GF_PATHS_DATA={{ grafana.GF_PATHS_DATA }}
+    networks:
+      - {{ traefik.network }}
+      - {{ prometheus.network }}
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network={{ traefik.network }}
+      - traefik.http.routers.grafana.entrypoints=http
+      - traefik.http.routers.grafana.rule=Host(`${GRASUB}.${DOMAIN_ADDRESS}`)
+      - traefik.http.routers.grafana.middlewares=https-redirect
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.grafana-secure.entrypoints=https
+      - traefik.http.routers.grafana-secure.rule=Host(`${GRASUB}.${DOMAIN_ADDRESS}`)
+      - traefik.http.routers.grafana-secure.tls=true
+      - traefik.http.routers.grafana-secure.tls.options=default
+      - traefik.http.routers.grafana-secure.tls.certresolver=mycert
+      - traefik.http.services.grafana.loadbalancer.server.port={{ grafana.loadbalancer_server_port}}
+
+  alertmanager:
+    image: {{ alertmanager.repo }}:{{ alertmanager.version }}
+    restart: ${RESTART_POLICY}
+    container_name: {{ alertmanager.container_name }}
+    volumes:
+      - {{ alertmanager.volume_data }}:/alertmanager
+      - {{ alertmanager.volume }}:/etc/alertmanager
+    command:
+      - --config.file={{ alertmanager.configfile }}
+      - --storage.path={{ alertmanager.storagepath }}
+    networks:
+      - {{ traefik.network }}
+      - {{ prometheus.network }}
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network={{ traefik.network }}
+      - traefik.http.routers.alert.entrypoints=http
+      - traefik.http.routers.alert.rule=Host(`${ALESUB}.${DOMAIN_ADDRESS}`)
+      - traefik.http.routers.alert.middlewares=https-redirect
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.alert-secure.entrypoints=https
+      - traefik.http.routers.alert-secure.rule=Host(`${ALESUB}.${DOMAIN_ADDRESS}`)
+      - traefik.http.routers.alert-secure.tls=true
+      - traefik.http.routers.alert-secure.tls.options=default
+      - traefik.http.routers.alert-secure.middlewares=web-auth
+      - traefik.http.routers.alert-secure.tls.certresolver=mycert
+      - traefik.http.services.alert.loadbalancer.server.port={{ alertmanager.loadbalancer_server_port}}
+
+  pushgateway:
+    image: {{ pushgtw.repo }}:{{ pushgtw.version }}
+    restart: ${RESTART_POLICY}
+    container_name: {{ pushgtw.container_name }}
+    command:
+      - --persistence.file={{ pushgtw.persistence_file }}
+      - --persistence.interval={{ pushgtw.persistence_interval }}
+    volumes:
+      - {{ pushgtw.volume_data }}:/tmp/
+    networks:
+      - {{ traefik.network }}
+      - {{ prometheus.network }}
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network={{ traefik.network }}
+      - traefik.http.routers.push.entrypoints=http
+      - traefik.http.routers.push.rule=Host(`${PGWSUB}.${DOMAIN_ADDRESS}`)
+      - traefik.http.routers.push.middlewares=https-redirect
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.push-secure.entrypoints=https
+      - traefik.http.routers.push-secure.rule=Host(`${PGWSUB}.${DOMAIN_ADDRESS}`)
+      - traefik.http.routers.push-secure.tls=true
+      - traefik.http.routers.push-secure.tls.options=default
+      - traefik.http.routers.push-secure.middlewares=web-auth
+      - traefik.http.routers.push-secure.tls.certresolver=mycert
+      - traefik.http.services.push.loadbalancer.server.port={{ pushgtw.loadbalancer_server_port}}
+
+  cadvisor:
+    image: {{ cadvisor.repo }}
+    command: --disable_metrics=disk,udp,percpu
+    restart: ${RESTART_POLICY}
+    hostname: '${HOSTNAME}'
+    container_name: {{ cadvisor.container_name }}
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - {{ cadvisor.docker_volume }}:/var/lib/docker:ro
+    networks:
+      - {{ prometheus.network }}
+
+  blackbox-exporter:
+    image: {{ blackbox.repo }}:{{ blackbox.version }}
+    restart: ${RESTART_POLICY}
+    hostname: '${HOSTNAME}'
+    container_name: {{ blackbox.container_name }}
+    command:
+      - '--config.file={{ blackbox.configfile }}'
+    volumes:
+      - {{ blackbox.volume }}:/etc/blackboxexporter
+    networks:
+      - {{ prometheus.network }}
+
+  node-exporter:
+    image: {{ nodexp.repo }}:{{ nodexp.version }}
+    restart: ${RESTART_POLICY}
+    hostname: '${HOSTNAME}'
+    container_name: {{ nodexp.container_name }}
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs={{ nodexp.pathprocfs }}'
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - ^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
+    networks:
+      - {{ prometheus.network }}

@@ -45,15 +45,15 @@ prometheus-stack
 ```bash
 cat .env
 # Domain address
-DOMAIN_ADDRESS=observability.mecan.ir
+DOMAIN_ADDRESS=wecan.ir
 PROSUB=metrics
 GRASUB=grafana
 ALESUB=alerts
 PGWSUB=pushgw
 
 # Grafana Auth
-GRAFANA_USERNAME=MeCan
-GRAFANA_PASSWORD=<GRAFANA_ADMIN_PASSWORD>
+GRAFANA_USERNAME=wecant
+GRAFANA_PASSWORD=asd@123
 GRAFANA_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource,grafana-piechart-panel
 
 # Server Name
@@ -94,7 +94,7 @@ apiVersion: 1
 providers:
 - name: 'Prometheus'
   orgId: 1
-  folder: 'MeCan_Services'
+  folder: 'WeCant_Services'
   type: file
   disableDeletion: false
   editable: true

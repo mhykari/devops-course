@@ -1,0 +1,57 @@
+---
+- name: Create traefik directory 
+  ansible.builtin.file:
+    path: "{{ traefik.path }}"
+    state: directory
+
+- name: Copy traefik compose file
+  ansible.builtin.template:
+    src: traefik-compose.yml.j2
+    dest: "{{ traefik.path }}/compose.yml"
+
+- name: Copy traefik env file
+  ansible.builtin.template:
+    src: traefik.env.j2
+    dest: "{{ traefik.path }}/.env"
+
+- name: Create traefik directory for cert
+  ansible.builtin.file:
+    path: "{{ traefik.configpath }}"
+    state: directory
+
+- name: Copy traefik config file
+  ansible.builtin.template:
+    src: traefik-config.yml.j2
+    dest: "{{ traefik.configpath }}/config.yml"
+
+- name: Create traefik directory for certs
+  ansible.builtin.file:
+    path: "{{ traefik.certpath }}"
+    state: directory
+
+- name: Copy cert.pem file
+  ansible.builtin.copy:
+    src: cert.pem
+    dest: "{{ traefik.certpath }}/cert.pem"
+
+- name: Copy key.pem file
+  ansible.builtin.copy:
+    src: key.pem
+    dest: "{{ traefik.certpath }}/key.pem"
+
+
+- name: pull traefik 
+  docker_image:
+    name: "{{ traefik.repo }}:{{ traefik.version }}"
+    source: pull
+  tags: pull_traefik 
+
+- name: Create a web-net network
+  docker_network:
+    name: web_net
+
+- name: Run traefik Docker Compose
+  docker_compose:
+    project_src: "{{ traefik.path }}"
+    state: present 
+  tags: run traefik

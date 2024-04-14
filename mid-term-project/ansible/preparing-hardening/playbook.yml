@@ -1,6 +1,6 @@
 ---
 - name: OS Harden And Service Install Playbook
-  hosts: local
+  hosts: all
   become: true
   gather_facts: true
   tags: hardening
@@ -8,7 +8,7 @@
     - hardening
 
 - name: Install Docker
-  hosts: local
+  hosts: all
   become: true
   gather_facts: true
   tags: docker
