@@ -26,6 +26,6 @@
     job: /opt/services/trivy_scan.sh
     mode: 0755
     state: present
-  notify: restart cron
+  notify: RestartCron
   tags: 
     - trivy
