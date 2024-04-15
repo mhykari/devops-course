@@ -26,12 +26,11 @@
     dest: "{{ promtailClient.path }}/promtail.yml"
   tags: Copy_promtail_config
 
-- name: pull cadvisor , node-exporter, promtail, images
+- name: pull node-exporter, promtail, images
   docker_image:
     name: "{{ item }}"
     source: pull
   loop:
-    - "{{ cadvisor.repo }}"
     - "{{ nodexp.repo }}:{{ nodexp.version }}"
     - "{{ promtail.repo }}:{{ promtail.version }}"
   tags: pull_monlogClient

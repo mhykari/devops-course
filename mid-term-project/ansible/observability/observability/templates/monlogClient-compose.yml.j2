@@ -9,20 +9,6 @@ networks:
     name: {{ traefik.network }}
 
 services:
-  cadvisor:
-    image: {{ cadvisor.repo }}
-    command: --disable_metrics=disk,udp,percpu
-    restart: ${RESTART_POLICY}
-    hostname: '${HOSTNAME}'
-    container_name: {{ cadvisor.container_name }}-client
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - {{ cadvisor.docker_volume }}:/var/lib/docker:ro
-    networks:
-      - {{ monlogClient.network }}
-
   node-exporter:
     image: {{ nodexp.repo }}:{{ nodexp.version }}
     restart: ${RESTART_POLICY}
