@@ -1,0 +1,51 @@
+---
+- name: Create monlogClient directory 
+  ansible.builtin.file:
+    path: "{{ monlogClient.path }}"
+    state: directory
+
+- name: Copy monlogClient compose file
+  ansible.builtin.template:
+    src: monlogClient-compose.yml.j2
+    dest: "{{ monlogClient.path }}/compose.yml"
+  tags: Copy_monlogClient
+
+- name: Copy monlogClient env file
+  ansible.builtin.template:
+    src: monlogClient.env.j2
+    dest: "{{ monlogClient.path }}/.env" 
+
+- name: Create promtail directory 
+  ansible.builtin.file:
+    path: "{{ promtailClient.path }}"
+    state: directory
+
+- name: template promtail config file
+  ansible.builtin.template:
+    src: monlogClient-promtail.yml.j2
+    dest: "{{ promtailClient.path }}/promtail.yml"
+  tags: Copy_promtail_config
+
+- name: pull cadvisor , node-exporter, promtail, images
+  docker_image:
+    name: "{{ item }}"
+    source: pull
+  loop:
+    - "{{ cadvisor.repo }}"
+    - "{{ nodexp.repo }}:{{ nodexp.version }}"
+    - "{{ promtail.repo }}:{{ promtail.version }}"
+  tags: pull_monlogClient
+
+- name: Create a web-net network
+  docker_network:
+    name: web_net
+
+- name: Create a web-net network
+  docker_network:
+    name: app_net
+
+- name: Run monlogClient Docker Compose
+  docker_compose:
+    project_src: "{{ monlogClient.path }}"
+    state: present 
+  tags: run monlogClient

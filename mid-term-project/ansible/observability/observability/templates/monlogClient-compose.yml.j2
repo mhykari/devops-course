@@ -1,0 +1,54 @@
+version: '3.8'
+
+networks:
+  {{ monlogClient.network }}:
+    external: true
+    name: {{ monlogClient.network }}
+  {{ traefik.network }}:
+    external: true
+    name: {{ traefik.network }}
+
+services:
+  cadvisor:
+    image: {{ cadvisor.repo }}
+    command: --disable_metrics=disk,udp,percpu
+    restart: ${RESTART_POLICY}
+    hostname: '${HOSTNAME}'
+    container_name: {{ cadvisor.container_name }}-client
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - {{ cadvisor.docker_volume }}:/var/lib/docker:ro
+    networks:
+      - {{ monlogClient.network }}
+
+  node-exporter:
+    image: {{ nodexp.repo }}:{{ nodexp.version }}
+    restart: ${RESTART_POLICY}
+    hostname: '${HOSTNAME}'
+    container_name: {{ nodexp.container_name }}-client
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs={{ nodexp.pathprocfs }}'
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    networks:
+      - {{ monlogClient.network }}
+
+  promtail:
+    image: {{ promtail.repo }}:{{ promtail.version }}
+    restart: ${RESTART_POLICY}
+    container_name: {{ promtail.container_name }}-client
+    volumes:
+      - /var/log:/var/log
+      - {{ promtail.dockercont }}:/var/lib/docker/containers:ro
+      - {{ promtail.dockerv }}:/var/run/docker.sock
+      - {{ promtail.volume }}:/etc/promtail/
+    command: -config.file={{ promtail.configfile }}
+    networks:
+      - {{ monlogClient.network }}

@@ -13,3 +13,8 @@
   become: true
   import_tasks: loki_stack.yml
   tags: loki_stack 
+
+- name: deploy monlogClient
+  become: true
+  import_tasks: monlogClient.yml
+  tags: monlogClient

@@ -139,3 +139,18 @@ loki_env:
  DOMAIN_ADDRESS: sh.shahrrii.ir
  LOGSUB: loki
  RESTART_POLICY: on-failure
+###############################################################
+#monlogClient variable
+monlogClient:
+ network: app_net
+ HOSTNAME: client
+ path: /opt/services/monlogClient
+ RESTART_POLICY: on-failure
+
+#monlogClient promtail variable
+promtailClient:
+ loki_user: Shahrrii
+ loki_pass: hNA6iQxwNcgZse2vZm4iLHhothC77J
+ loki_url: loki.sh.shahrrii.ir
+ path: /opt/services/monlogClient/promtail
+

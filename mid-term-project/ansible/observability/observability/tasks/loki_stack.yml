@@ -31,7 +31,7 @@
     source: pull
   loop:
     - "{{ loki.repo }}:{{ loki.version }}"
-    - "{{ promtail.repo }}:{{ promtail.version }}"
+    - "{{ promtail.repo }}:{{ promtail.version }}}"
   tags: pull_loki_stack 
 
 - name: Run loki_stack Docker Compose
