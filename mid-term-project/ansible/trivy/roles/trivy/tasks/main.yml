@@ -1,4 +1,10 @@
 ---
+- name: Update and upgrade apt packages
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400
+
 - name: Download Trivy .deb package
   ansible.builtin.get_url:
     url: https://github.com/aquasecurity/trivy/releases/download/v0.18.3/trivy_0.18.3_Linux-64bit.deb
@@ -15,6 +21,7 @@
     path: /tmp/trivy_0.18.3_Linux-64bit.deb
     state: absent
 
+
 - name: Create Trivy result directory
   file:
     path: "{{ trivy_result_directory }}"
@@ -27,14 +34,15 @@
     path: "{{ trivy_result_directory }}"
     state: directory
 
-- name: Create daily cron job for Trivy
-  ansible.builtin.cron:
-    name: "Run Trivy daily"
-    minute: "0"
-    hour: "0"
-    job: "/usr/local/bin/trivy filesystem --output /opt/services/trivy-result/trivy_$(date +\\%Y-\\%m-\\%d).log --exit-code 1 /"
-    state: present
+- name: Create Trivy cronjob
+  become: yes
+  cron:
+    name: Run Trivy scan
+    minute: 0
+    hour: 0
+    job: /opt/services/trivy_scan.sh
     mode: 0755
+    state: present
   notify: RestartCron
   tags: 
     - trivy
