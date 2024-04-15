@@ -1,6 +1,7 @@
 ---
 - name: Install and configure Trivy
-  hosts: your_hosts
+#  gather_facts: no
+  hosts: all
   become: true
   roles:
     - trivy
