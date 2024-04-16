@@ -1,4 +1,3 @@
 ---
 TRIVY_RESULT_DIRECTORY: "/opt/services/trivy"
 IMAGES_OUTPUT_FILE: "trivy_images_results.txt"
-CONTAINERS_OUTPUT_FILE: "trivy_containers_results.txt"
