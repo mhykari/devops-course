@@ -3,10 +3,10 @@
   become: true
   get_url:
     url: "https://github.com/aquasecurity/trivy/releases/download/v0.18.3/trivy_0.18.3_Linux-64bit.deb"
-    dest: "$TRIVY_RESULT_DIRECTORY/trivy_0.18.3_Linux-64bit.deb"
+    dest: "{{ TRIVY_RESULT_DIRECTORY }}/trivy_0.18.3_Linux-64bit.deb"
 
 - name: Install Trivy
   become: true
   apt:
-    deb: "$TRIVY_RESULT_DIRECTORY/trivy_0.18.3_Linux-64bit.deb"
+    deb: "{{ TRIVY_RESULT_DIRECTORY }}/trivy_0.18.3_Linux-64bit.deb"
   notify: RestartTrivy
