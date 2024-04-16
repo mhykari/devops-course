@@ -1,6 +1,6 @@
 ---
 - name: Install and configure Trivy
-#  gather_facts: no
+  gather_facts: no
   hosts: all
   become: true
   roles:

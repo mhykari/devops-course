@@ -1,4 +1,9 @@
 ---
+- name: RestartTrivy
+  systemd:
+    name: trivy
+    state: restarted
+
 - name: RestartCron
   service:
     name: cron

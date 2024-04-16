@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Define the output file
+IMAGES_IMAGES_OUTPUT_FILE="{{ IMAGES_OUTPUT_FILE }}"
+CONTAINERS_OUTPUT_FILE="{{ CONTAINERS_OUTPUT_FILE }}"
+
+
+# Get a list of all Docker images
+IMAGES=$(docker images --format '{{ "{{.Repository}}:{{.Tag}}" }}' )
+
+# Loop through each image and scan it with Trivy
+for image in $IMAGES; do
+    echo "Scanning image: $image"
+    trivy --quiet --exit-code 1 --severity HIGH,CRITICAL --no-progress $image >> "{{ IMAGES_OUTPUT_FILE }}"
+done
+
+echo "Images scan completed. Results saved to {{ IMAGES_OUTPUT_FILE }}"
+
+# Loop through each containers and scan it with Trivy
+echo "Scanning all running Docker containers with Trivy..."
+docker ps --format '{{ "{{.ID}}" }}' | while read -r container_id; do
+    echo "Scanning container: $container_id"
+    trivy --quiet --exit-code 1 --severity HIGH,CRITICAL --no-progress "docker://$container_id" >> "{{ CONTAINERS_OUTPUT_FILE }}"
+done
+
+echo "Coniainers scan completed. Results saved to {{ CONTAINERS_OUTPUT_FILE }}"
