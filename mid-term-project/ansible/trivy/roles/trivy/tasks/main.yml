@@ -10,8 +10,8 @@
   meta: flush_handlers
   when: dir_creation_result.changed
 
-- name: Trivy Installation
-  import_tasks: trivy_installation.yml
+#- name: Trivy Installation
+#  import_tasks: trivy_installation.yml
 
 - name: Get Trivy version
   command: trivy --version

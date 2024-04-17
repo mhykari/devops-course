@@ -2,6 +2,7 @@
 
 # Define the output file
 IMAGES_IMAGES_OUTPUT_FILE="{{ IMAGES_OUTPUT_FILE }}"
+TRIVY_RESULT_DIRECTORY="{{ TRIVY_RESULT_DIRECTORY }}"
 
 # Get a list of all Docker images
 IMAGES=$(docker images --format '{{ "{{.Repository}}:{{.Tag}}" }}' )
@@ -9,7 +10,7 @@ IMAGES=$(docker images --format '{{ "{{.Repository}}:{{.Tag}}" }}' )
 # Loop through each image and scan it with Trivy
 for image in $IMAGES; do
     echo "Scanning image: $image"
-    trivy --quiet --exit-code 1 --severity HIGH,CRITICAL --no-progress $image >> "{{ IMAGES_OUTPUT_FILE }}"
+    trivy --quiet --exit-code 1 --severity HIGH,CRITICAL --no-progress $image >> "{{ TRIVY_RESULT_DIRECTORY }}/{{ IMAGES_OUTPUT_FILE }}"
 done
 
-echo "Images scan completed. Results saved to {{ IMAGES_OUTPUT_FILE }}"
+echo "Images scan completed. Results saved to "{{ TRIVY_RESULT_DIRECTORY }}/{{ IMAGES_OUTPUT_FILE }}" "
