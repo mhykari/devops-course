@@ -1,0 +1,38 @@
+version: '3.8'
+
+networks:
+  web_net:
+    external: true
+    name: web_net
+
+services:
+  node-exporter:
+    image: prom/node-exporter:v1.6.1
+    restart: ${RESTART_POLICY}
+    container_name: node-exporter-tools
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    networks:
+      - web_net
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web_net
+      - traefik.http.routers.nodeexporter.entrypoints=http
+      - traefik.http.routers.nodeexporter.rule=Host(`${NESUB}.${DOMAIN_ADDRESS}`)
+      - traefik.http.routers.nodeexporter.middlewares=https-redirect
+      - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.nodeexporter-secure.entrypoints=https
+      - traefik.http.routers.nodeexporter-secure.rule=Host(`${NESUB}.${DOMAIN_ADDRESS}`)
+      - traefik.http.routers.nodeexporter-secure.tls=true
+      - traefik.http.routers.nodeexporter-secure.tls.options=default
+      - traefik.http.routers.nodeexporter-secure.middlewares=web-auth
+      - traefik.http.routers.nodeexporter-secure.tls.certresolver=mycert
+      - traefik.http.services.nodeexporter.loadbalancer.server.port=9100
+
