@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  redis-node1:
+    image: redis:latest
+    container_name: redis-node1
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes"]
+    networks:
+      - redis-cluster
+
+  redis-node2:
+    image: redis:latest
+    container_name: redis-node2
+    ports:
+      - "6380:6379"
+    command: ["redis-server", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes"]
+    networks:
+      - redis-cluster
+
+  redis-node3:
+    image: redis:latest
+    container_name: redis-node3
+    ports:
+      - "6381:6379"
+    command: ["redis-server", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes"]
+    networks:
+      - redis-cluster
+
+  redis-node4:
+    image: redis:latest
+    container_name: redis-node4
+    ports:
+      - "6382:6379"
+    command: ["redis-server", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes"]
+    networks:
+      - redis-cluster
+
+  redis-node5:
+    image: redis:latest
+    container_name: redis-node5
+    ports:
+      - "6383:6379"
+    command: ["redis-server", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes"]
+    networks:
+      - redis-cluster
+
+  redis-node6:
+    image: redis:latest
+    container_name: redis-node6
+    ports:
+      - "6384:6379"
+    command: ["redis-server", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes"]
+    networks:
+      - redis-cluster
+
+  haproxy:
+    image: haproxy:latest
+    container_name: haproxy
+    depends_on:
+      - redis-node1
+      - redis-node2
+      - redis-node3
+      - redis-node4
+      - redis-node5
+      - redis-node6
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+    ports:
+      - "7000:7000"
+      - "8404:8404"
+    networks:
+      - redis-cluster
+
+networks:
+  redis-cluster:
+    driver: bridge
